@@ -140,12 +140,17 @@ client.once("ready", () => {
   // Güncelleme Bildirimi
   const channel = client.channels.cache.get(LOG_CHANNEL_ID);
   if (channel) {
-    channel.send({ 
+    // Son 5 mesajı çek ve aynı sürüm notu zaten atılmış mı bak
+    const messages = await channel.messages.fetch({ limit: 5 });
+    const isSent = messages.some(m => m.embeds[0]?.description?.includes(`v${BOT_VERSION}`));
+
+    if (!isSent) {
+      channel.send({ 
         embeds: [new EmbedBuilder()
-            .setTitle("🚀 Bot Başlatıldı")
-            .setDescription(updateNotes)
-            .setColor(Colors.Green)
-            .setTimestamp()] 
-    }).catch(() => {});
+          .setTitle("🚀 Bot Başlatıldı")
+          .setDescription(updateNotes)
+          .setColor(Colors.Green)] 
+      }).catch(() => {});
+    }
   }
 });
