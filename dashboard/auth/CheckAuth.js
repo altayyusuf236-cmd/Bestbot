@@ -1,14 +1,12 @@
 module.exports = (req, res, next) => {
-  // Eğer oturum (session) varsa ve kullanıcı giriş yapmışsa devam et
+  // Eğer kullanıcı session'da varsa devam et
   if (req.session && req.session.user) {
     return next();
   }
-
-  // Eğer giriş yapmamışsa, girmeye çalıştığı linki hafızaya al (hata vermemesi için kontrol ekledik)
-  if (req.session) {
-    req.session.backURL = req.url;
-  }
-
-  // Giriş yapmadığı için ana sayfaya yönlendir
+  
+  // Yoksa ana sayfaya at (Giriş yapması için)
+  // BURAYA DİKKAT: Eğer zaten ana sayfadaysan yönlendirme yapma (Döngü durur)
+  if (req.url === "/") return next();
+  
   res.redirect("/");
 };
