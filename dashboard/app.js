@@ -24,7 +24,7 @@ module.exports.launch = async (client) => {
     .set("port", process.env.PORT || config.DASHBOARD.port || 8080)
     .use(
       session({
-        secret: process.env.SESSION_PASSWORD || "gizli-sifre",
+        secret: process.env.SESSION_PASSWORD || "3644AB3644",
         resave: false,
         saveUninitialized: false,
         proxy: true,

@@ -1,9 +1,14 @@
-module.exports = async (req, res, next) => {
-  if (!req.session.user) {
-    const redirectURL = req.originalUrl.includes("login") || req.originalUrl === "/" ? "/selector" : req.originalUrl;
-    const state = Math.random().toString(36).substring(5);
-    req.client.states[state] = redirectURL;
-    return res.redirect(`/api/login?state=${state}`);
+module.exports = (req, res, next) => {
+  // Eğer oturum (session) varsa ve kullanıcı giriş yapmışsa devam et
+  if (req.session && req.session.user) {
+    return next();
   }
-  return next();
+
+  // Eğer giriş yapmamışsa, girmeye çalıştığı linki hafızaya al (hata vermemesi için kontrol ekledik)
+  if (req.session) {
+    req.session.backURL = req.url;
+  }
+
+  // Giriş yapmadığı için ana sayfaya yönlendir
+  res.redirect("/");
 };
