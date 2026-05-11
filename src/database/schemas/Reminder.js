@@ -1,10 +1,21 @@
 const mongoose = require("mongoose");
 
+const reqString = {
+  type: String,
+  required: true,
+};
+
 const Schema = new mongoose.Schema({
-  userId: { type: String, required: true },
-  reason: { type: String, required: true },
-  remindAt: { type: Date, required: true },
-  triggered: { type: Boolean, default: false },
+  userId: reqString,
+  reason: reqString,
+  remindAt: {
+    type: Date,
+    required: true,
+  },
+  triggered: {
+    type: Boolean,
+    default: false,
+  }
 });
 
-module.exports = mongoose.model("reminders", Schema);
+module.exports = mongoose.model("Reminder", Schema);
