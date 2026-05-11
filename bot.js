@@ -1,3 +1,5 @@
+const Reminder = require("@src/database/schemas/Reminder");
+
 require("dotenv").config();
 require("module-alias/register");
 
@@ -14,12 +16,10 @@ validateConfiguration();
 
 const OWNER_ID = "1469310778518536265"; 
 const LOG_CHANNEL_ID = "1479934586132758701";
-const BOT_VERSION = "3.0";
+const BOT_VERSION = "3.1";
 
-const updateNotes = `**v${BOT_VERSION} Log Sistemi**
-- 🛡️ **Denetim Kaydı Entegrasyonu:** İşlemleri kimin yaptığı artık loglanıyor.
-- 🌐 **Global Takip:** Botun olduğu tüm sunucular tek merkezden izleniyor.
-- **Dashboard:** Dashboard redirect hatası fix.`;
+const updateNotes = `**v${BOT_VERSION} Hatırlatma Sistemi**
+- Hatırlatma sistemi eklendi.`;
 
 const client = new BotClient({
   partials: [Partials.Message, Partials.Channel, Partials.GuildMember, Partials.User]
@@ -200,4 +200,33 @@ client.once("ready", async () => {
       channel.send({ embeds: [new EmbedBuilder().setTitle("🚀 Bot Başlatıldı").setDescription(updateNotes).setColor(Colors.Green)] });
     }
   }
+});
+  // ==========================================
+  // ⏰ HATIRLATICI TAKİP SİSTEMİ (Her Dakika)
+  // ==========================================
+  setInterval(async () => {
+    const now = new Date();
+    // Zamanı gelmiş ve henüz tetiklenmemiş hatırlatıcıları bul
+    const overdue = await Reminder.find({ remindAt: { $lte: now }, triggered: false });
+
+    for (const rem of overdue) {
+      rem.triggered = true;
+      await rem.save();
+
+      const user = await client.users.fetch(rem.userId).catch(() => null);
+      if (user) {
+        const embed = new EmbedBuilder()
+          .setTitle("⏰ Hatırlatıcı Zamanı Geldiii!")
+          .setDescription(`**Notun:** ${rem.reason}`)
+          .setColor(Colors.Yellow)
+          .setTimestamp();
+        
+        await user.send({ embeds: [embed] }).catch(() => {
+          console.log(`${user.tag} kullanıcısına DM atılamadı, kapalı olabilir.`);
+        });
+      }
+      // Hatırlatma yapıldıktan sonra veritabanından silebilirsin
+      await Reminder.deleteOne({ _id: rem._id });
+    }
+  }, 60000); // 60 saniyede bir kontrol et (Gecikme olmaz)
 });
