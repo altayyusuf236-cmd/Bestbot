@@ -15,18 +15,18 @@ module.exports = {
     ],
   },
 
-  async interactionRun(interaction) {
+    async interactionRun(interaction) {
     const dateStr = interaction.options.getString("tarih");
     const timeStr = interaction.options.getString("saat");
     const reason = interaction.options.getString("mesaj");
 
-    // Tarihi parçala ve TR saatine (UTC+3) göre ayarla
     const [day, month, year] = dateStr.split(".").map(Number);
     const [hour, minute] = timeStr.split(":").map(Number);
 
-    const remindAt = new Date(year, month - 1, day, hour, minute);
-    
-    // Geçmiş bir tarih kontrolü
+    // Türkiye saati (UTC+3) ile sunucu saati (UTC) arasındaki farkı hesaba katar:
+    const remindAt = new Date(year, month - 1, day, hour - 3, minute); 
+    // TR'de saat 20:00 ise, Frankfurt'ta (Render) 17:00'dır. Bu yüzden -3 yaptık.
+
     if (remindAt < new Date()) {
       return interaction.followUp("❌ Geçmiş bir zamana hatırlatıcı kuramazsın kanka!");
     }
@@ -39,4 +39,3 @@ module.exports = {
 
     return interaction.followUp(`✅ Tamamdır! **${dateStr}** saat **${timeStr}** olduğunda sana DM'den hatırlatacağım.`);
   },
-};
