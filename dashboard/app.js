@@ -12,29 +12,29 @@ module.exports.launch = async (client) => {
 
   const db = await mongoose.initializeMongoose();
 
-  // 1. RENDER İÇİN EN ÖNEMLİ AYAR
+  // 1. RENDER İÇİN EN ÖNEMLİ AYAR (Proxy arkasında HTTPS çerezleri için)
   app.set("trust proxy", 1);
 
   /* App configuration */
-  app
-    .use(express.json())
-    .use(express.urlencoded({ extended: true }))
-    .engine("html", require("ejs").renderFile)
-    .set("view engine", "ejs")
-    .use(express.static(path.join(__dirname, "/public")))
-    .set("views", path.join(__dirname, "/views"))
-    .set("port", process.env.PORT || config.DASHBOARD.port || 8080);
+  app.set("view engine", "ejs");
+  app.set("views", path.join(__dirname, "/views"));
+  app.set("port", process.env.PORT || config.DASHBOARD.port || 8080);
 
-  // 2. SESSION AYARI (Döngüyü kıran kısım)
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  app.use(express.static(path.join(__dirname, "/public")));
+  app.engine("html", require("ejs").renderFile);
+
+  // 2. SESSION AYARI (Döngüyü kıran ve Render'a uyumlu olan kısım)
   app.use(
     session({
       secret: process.env.SESSION_PASSWORD || "3644AB3644",
-      resave: true,
-      saveUninitialized: true,
-      proxy: true,
+      resave: false,
+      saveUninitialized: false,
+      proxy: true, // Render proxy'sine güven
       name: "bestbot_session",
       cookie: {
-        secure: true,
+        secure: true, // Render HTTPS olduğu için true olmalı
         httpOnly: true,
         sameSite: "lax",
         maxAge: 336 * 60 * 60 * 1000,
@@ -56,7 +56,7 @@ module.exports.launch = async (client) => {
     next();
   });
 
-  // 4. ROTALAR
+  // 4. ROTALAR (Syntax hataları düzeltildi)
   app.use("/api", require("./routes/discord"));
   app.use("/logout", require("./routes/logout"));
   app.use("/manage", require("./routes/guild-manager"));
@@ -70,6 +70,7 @@ module.exports.launch = async (client) => {
 
   /* Start */
   const PORT = app.get("port");
+  // 0.0.0.0 Render'ın dışarıdan erişmesi için şarttır
   app.listen(PORT, "0.0.0.0", () => {
     client.logger.success("Dashboard is listening on port " + PORT);
   });

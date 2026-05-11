@@ -1,7 +1,6 @@
 require("dotenv").config();
 require("module-alias/register");
 
-// Extenders
 require("@helpers/extenders/Message");
 require("@helpers/extenders/Guild");
 require("@helpers/extenders/GuildChannel");
@@ -9,86 +8,163 @@ require("@helpers/extenders/GuildChannel");
 const { initializeMongoose } = require("@src/database/mongoose");
 const { BotClient } = require("@src/structures");
 const { validateConfiguration } = require("@helpers/Validator");
-const { EmbedBuilder, ActivityType, Colors, Partials } = require("discord.js");
+const { EmbedBuilder, ActivityType, Colors, Partials, AuditLogEvent } = require("discord.js");
 
 validateConfiguration();
 
-// ==========================================
-// ⚙️ AYARLAR (BURALARI DÜZENLE)
-// ==========================================
 const OWNER_ID = "1469310778518536265"; 
 const LOG_CHANNEL_ID = "1479934586132758701";
-const BOT_VERSION = "2.6";
+const BOT_VERSION = "3.0";
 
-const updateNotes = `**v${BOT_VERSION} Ultimate Update**
-- 🛡️ **Bakım Modu:** Sahip hariç tüm komutlar kilitlendi.
-- 📜 **Ultra Log:** Mesaj, Rol, Ses ve Üye logları aktif.
-- 🌐 **Dashboard:** Render Port (10000) senkronizasyonu yapıldı.
-- 🚀 **Performans:** Bellek kullanımı optimize edildi.`;
+const updateNotes = `**v${BOT_VERSION} Log Sistemi**
+- 🛡️ **Denetim Kaydı Entegrasyonu:** İşlemleri kimin yaptığı artık loglanıyor.
+- 🌐 **Global Takip:** Botun olduğu tüm sunucular tek merkezden izleniyor.
+- **Dashboard:** Dashboard redirect hatası fix.`;
 
-// Client Başlatma (Partials eklendi ki loglar sekmesin)
 const client = new BotClient({
   partials: [Partials.Message, Partials.Channel, Partials.GuildMember, Partials.User]
 });
 
-client.isMaintenance = false; // Bakım modu varsayılan kapalı
+client.isMaintenance = false;
 
 // ==========================================
-// 🛡️ BAKIM MODU KİLİDİ (INTERCEPTOR)
+// 🛡️ DENETİM KAYDI ÇEKİCİ (KİM YAPTI?)
+// ==========================================
+async function getExecutor(guild, type) {
+  try {
+    await new Promise(res => setTimeout(res, 2000)); // Discord'un işlemesi için kısa bekleme
+    const fetchedLogs = await guild.fetchAuditLogs({ limit: 1, type: type });
+    const auditEntry = fetchedLogs.entries.first();
+    if (!auditEntry) return "Bilinmiyor";
+    
+    // Eğer işlem son 10 saniye içinde yapıldıysa yapanı döndür
+    if (Date.now() - auditEntry.createdTimestamp < 10000) {
+      return `${auditEntry.executor.tag} (${auditEntry.executor.id})`;
+    }
+    return "Bilinmiyor/Otomatik";
+  } catch (err) { return "Yetki Yok/Hata"; }
+}
+
+// ==========================================
+// 📜 GLOBAL LOG GÖNDERİCİ
+// ==========================================
+async function sendGlobalLog(guild, embed) {
+  try {
+    const logChannel = client.channels.cache.get(LOG_CHANNEL_ID) || await client.channels.fetch(LOG_CHANNEL_ID).catch(() => null);
+    if (!logChannel) return;
+    
+    embed.setFooter({ text: `Sunucu: ${guild.name} | ID: ${guild.id}`, iconURL: guild.iconURL() });
+    embed.setTimestamp();
+    
+    await logChannel.send({ embeds: [embed] }).catch(() => {});
+  } catch (err) { console.log("Log gönderilemedi:", err.message); }
+}
+
+// ==========================================
+// 🛡️ BAKIM MODU KİLİDİ
 // ==========================================
 const originalEmit = client.emit;
 client.emit = function (event, ...args) {
-  if (client.isMaintenance) {
-    if (event === "interactionCreate" && args[0].user.id !== OWNER_ID) {
-      if (args[0].isRepliable()) args[0].reply({ content: "🛠️ Bot şu an bakımda kanka.", ephemeral: true }).catch(() => {});
-      return false;
-    }
-    if (event === "messageCreate" && args[0].author && args[0].author.id !== OWNER_ID) {
-      const prefix = client.config.PREFIX || "!";
-      if (args[0].content.startsWith(prefix) && !args[0].content.includes("bakım")) return false;
-    }
+  if (client.isMaintenance && event === "interactionCreate" && args[0].user.id !== OWNER_ID) {
+    if (args[0].isRepliable()) args[0].reply({ content: "🛠️ Bot şu an bakımda kanka.", ephemeral: true }).catch(() => {});
+    return false;
   }
   return originalEmit.apply(client, [event, ...args]);
 };
 
 // ==========================================
-// 📜 LOG YARDIMCI FONKSİYONU
-// ==========================================
-async function sendLog(embed, type = "info") {
-  if (!LOG_CHANNEL_ID) return;
-  try {
-    const channel = client.channels.cache.get(LOG_CHANNEL_ID) || await client.channels.fetch(LOG_CHANNEL_ID).catch(() => null);
-    if (channel) await channel.send({ embeds: [embed] }).catch(() => {});
-  } catch (err) { console.log("Log hatası:", err.message); }
-}
-
-// ==========================================
-// 🔥 ULTRA LOG SİSTEMİ
+// 🔥 ULTRA LOG EVENTLERİ
 // ==========================================
 
-// Mesaj Silme
-client.on("messageDelete", m => {
-  if (m.partial || m.author?.bot) return;
-  sendLog(new EmbedBuilder().setTitle("🗑️ Mesaj Silindi").setColor(Colors.Red).addFields({ name: "Yazar", value: m.author.tag, inline: true }, { name: "Kanal", value: `<#${m.channelId}>`, inline: true }, { name: "İçerik", value: m.content?.substring(0, 1024) || "Boş/Resim" }).setTimestamp());
-});
-
-// Rol Güncelleme
-client.on("guildMemberUpdate", (oldM, newM) => {
+// 1. ROL GÜNCELLEMELERİ (KİM YAPTI?)
+client.on("guildMemberUpdate", async (oldM, newM) => {
   if (oldM.roles.cache.size !== newM.roles.cache.size) {
     const added = newM.roles.cache.filter(r => !oldM.roles.cache.has(r.id));
-    const removed = oldM.roles.cache.filter(r => !oldM.roles.cache.has(r.id));
-    const embed = new EmbedBuilder().setTitle("🎨 Rol Değişti").setColor(Colors.Blue).setFooter({ text: newM.user.tag });
-    if (added.size > 0) embed.addFields({ name: "✅ Verilen", value: added.map(r => r.name).join(", ") });
-    if (removed.size > 0) embed.addFields({ name: "❌ Alınan", value: removed.map(r => r.name).join(", ") });
-    sendLog(embed);
+    const removed = oldM.roles.cache.filter(r => !newM.roles.cache.has(r.id));
+    const executor = await getExecutor(newM.guild, AuditLogEvent.MemberRoleUpdate);
+
+    const embed = new EmbedBuilder()
+      .setTitle(added.size > 0 ? "✅ Rol Verildi" : "❌ Rol Alındı")
+      .setColor(added.size > 0 ? Colors.Green : Colors.Red)
+      .addFields(
+        { name: "Üye", value: `${newM.user.tag}`, inline: true },
+        { name: "İşlemi Yapan", value: `${executor}`, inline: true },
+        { name: "Roller", value: added.size > 0 ? added.map(r => r.name).join(", ") : removed.map(r => r.name).join(", ") }
+      );
+    sendGlobalLog(newM.guild, embed);
+  }
+
+  // Nickname Değişimi
+  if (oldM.nickname !== newM.nickname) {
+    const executor = await getExecutor(newM.guild, AuditLogEvent.MemberUpdate);
+    sendGlobalLog(newM.guild, new EmbedBuilder()
+      .setTitle("🏷️ İsim Değiştirildi")
+      .setColor(Colors.Cyan)
+      .addFields(
+        { name: "Üye", value: newM.user.tag, inline: true },
+        { name: "Yapan", value: executor, inline: true },
+        { name: "Eski", value: oldM.nickname || oldM.user.username, inline: true },
+        { name: "Yeni", value: newM.nickname || newM.user.username, inline: true }
+      ));
   }
 });
 
-// Ses Kanalları
-client.on("voiceStateUpdate", (o, n) => {
-  if (!o.channelId && n.channelId) sendLog(new EmbedBuilder().setTitle("🎤 Sese Girdi").setColor(Colors.Green).setDescription(`${n.member.user.tag} -> <#${n.channelId}>`), "info");
-  else if (o.channelId && !n.channelId) sendLog(new EmbedBuilder().setTitle("🎤 Sesten Çıktı").setColor(Colors.Red).setDescription(`${o.member.user.tag} -> <#${o.channelId}>`), "info");
+// 2. MESAJ LOGLARI (SİLME/DÜZENLEME)
+client.on("messageDelete", async m => {
+  if (m.partial || m.author?.bot) return;
+  const executor = await getExecutor(m.guild, AuditLogEvent.MessageDelete);
+  sendGlobalLog(m.guild, new EmbedBuilder()
+    .setTitle("🗑️ Mesaj Silindi")
+    .setColor(Colors.DarkRed)
+    .addFields(
+      { name: "Kanal", value: `<#${m.channelId}>`, inline: true },
+      { name: "Yazar", value: m.author.tag, inline: true },
+      { name: "Silen", value: executor, inline: true },
+      { name: "İçerik", value: m.content || "Resim/Dosya" }
+    ));
 });
+
+client.on("messageUpdate", (o, n) => {
+  if (o.partial || o.author?.bot || o.content === n.content) return;
+  sendGlobalLog(o.guild, new EmbedBuilder()
+    .setTitle("📝 Mesaj Düzenlendi")
+    .setColor(Colors.Yellow)
+    .addFields(
+      { name: "Yazar", value: o.author.tag, inline: true },
+      { name: "Kanal", value: `<#${o.channelId}>`, inline: true },
+      { name: "Eski", value: o.content?.substring(0, 500) },
+      { name: "Yeni", value: n.content?.substring(0, 500) }
+    ));
+});
+
+// 3. ÜYE BAN/UNBAN (KİM YAPTI?)
+client.on("guildBanAdd", async b => {
+  const executor = await getExecutor(b.guild, AuditLogEvent.MemberBanAdd);
+  sendGlobalLog(b.guild, new EmbedBuilder()
+    .setTitle("🚫 Üye Yasaklandı")
+    .setColor(Colors.Black)
+    .addFields({ name: "Yasaklanan", value: b.user.tag }, { name: "Yapan", value: executor }, { name: "Sebep", value: b.reason || "Belirtilmemiş" }));
+});
+
+// 4. KANAL LOGLARI
+client.on("channelCreate", async c => {
+  const executor = await getExecutor(c.guild, AuditLogEvent.ChannelCreate);
+  sendGlobalLog(c.guild, new EmbedBuilder().setTitle("🆕 Kanal Açıldı").setColor(Colors.Aqua).addFields({ name: "Kanal", value: c.name }, { name: "Yapan", value: executor }));
+});
+
+client.on("channelDelete", async c => {
+  const executor = await getExecutor(c.guild, AuditLogEvent.ChannelDelete);
+  sendGlobalLog(c.guild, new EmbedBuilder().setTitle("🗑️ Kanal Silindi").setColor(Colors.DarkGrey).addFields({ name: "Kanal", value: c.name }, { name: "Silen", value: executor }));
+});
+
+// 5. SES VE GİRİŞ ÇIKIŞ
+client.on("voiceStateUpdate", (o, n) => {
+  if (!o.channelId && n.channelId) sendGlobalLog(n.guild, new EmbedBuilder().setTitle("🎤 Sese Girdi").setColor(Colors.Green).setDescription(`${n.member.user.tag} -> <#${n.channelId}>`));
+  if (o.channelId && !n.channelId) sendGlobalLog(o.guild, new EmbedBuilder().setTitle("🎤 Sesten Çıktı").setColor(Colors.Red).setDescription(`${o.member.user.tag} -> <#${o.channelId}>`));
+});
+
+client.on("guildMemberAdd", m => sendGlobalLog(m.guild, new EmbedBuilder().setTitle("📥 Giriş Yaptı").setColor(Colors.LightGrey).setDescription(`${m.user.tag} sunucuya katıldı.`)));
+client.on("guildMemberRemove", m => sendGlobalLog(m.guild, new EmbedBuilder().setTitle("📤 Ayrıldı").setColor(Colors.Grey).setDescription(`${m.user.tag} sunucudan ayrıldı.`)));
 
 // ==========================================
 // 🛠️ BAKIM KOMUTU (!bakım)
@@ -100,57 +176,28 @@ client.on("messageCreate", async m => {
     const status = client.isMaintenance ? "AÇIK 🔴" : "KAPALI 🟢";
     client.user.setPresence({ status: client.isMaintenance ? "dnd" : "online" });
     await m.reply(`🛡️ Bakım Modu: **${status}**`);
-    sendLog(new EmbedBuilder().setTitle("⚙️ Bakım Durumu Değişti").setDescription(`Bakım modu şu an: **${status}**`).setColor(Colors.Yellow), "warn");
   }
 });
 
-// Komutları Yükle
+// Yüklemeler
 client.loadCommands("src/commands");
 client.loadContexts("src/contexts");
 client.loadEvents("src/events");
 
-// Hataları Yakala
-process.on("unhandledRejection", (err) => console.error(`[Unhandled Rejection]:`, err));
-
-// ==========================================
-// 🚀 BAŞLATMA SİSTEMİ
-// ==========================================
 (async () => {
-  // Veritabanı ve Dashboard
   if (client.config.DASHBOARD.enabled) {
-    try {
-      const { launch } = require("@root/dashboard/app");
-      await launch(client);
-    } catch (ex) { console.error("Dashboard Hatası:", ex); }
-  } else {
-    await initializeMongoose();
-  }
-
-  // Discord Login
+    try { require("@root/dashboard/app").launch(client); } catch (ex) { console.error(ex); }
+  } else { await initializeMongoose(); }
   await client.login(process.env.BOT_TOKEN);
 })();
 
-client.once("ready", () => {
+client.once("ready", async () => {
   console.log(`\x1b[32m[✅] ${client.user.tag} Aktif!\x1b[0m`);
-  
-  // Port Bilgisini Konsola Yaz (Render için)
-  const port = process.env.PORT || client.config.DASHBOARD.port || 8080;
-  console.log(`\x1b[36m[🌐] Dashboard Portu: ${port}\x1b[0m`);
-
-  // Güncelleme Bildirimi
-  const channel = client.channels.cache.get(LOG_CHANNEL_ID);
+  const channel = client.channels.cache.get(LOG_CHANNEL_ID) || await client.channels.fetch(LOG_CHANNEL_ID).catch(() => null);
   if (channel) {
-    // Son 5 mesajı çek ve aynı sürüm notu zaten atılmış mı bak
     const messages = await channel.messages.fetch({ limit: 5 });
-    const isSent = messages.some(m => m.embeds[0]?.description?.includes(`v${BOT_VERSION}`));
-
-    if (!isSent) {
-      channel.send({ 
-        embeds: [new EmbedBuilder()
-          .setTitle("🚀 Bot Başlatıldı")
-          .setDescription(updateNotes)
-          .setColor(Colors.Green)] 
-      }).catch(() => {});
+    if (!messages.some(m => m.embeds[0]?.description?.includes(`v${BOT_VERSION}`))) {
+      channel.send({ embeds: [new EmbedBuilder().setTitle("🚀 Bot Başlatıldı").setDescription(updateNotes).setColor(Colors.Green)] });
     }
   }
 });
