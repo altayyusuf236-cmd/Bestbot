@@ -1,5 +1,5 @@
 const { ApplicationCommandOptionType, EmbedBuilder } = require("discord.js");
-const Reminder = require("@src/database/schemas/Reminder");
+const Reminder = require("@src/database/schemas/Reminder.js");
 
 module.exports = {
   name: "hatırlat",
