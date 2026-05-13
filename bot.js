@@ -1,4 +1,3 @@
-const Reminder = require("@src/database/schemas/Reminder.js");
 require("dotenv").config();
 require("module-alias/register");
 
