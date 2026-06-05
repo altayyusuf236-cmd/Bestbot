@@ -24,10 +24,10 @@ validateConfiguration();
 const OWNER_ID = "1469310778518536265"; 
 const UPDATE_CHANNEL_ID = "1490088015626764341";
 const LOG_CHANNEL_ID = "1503387573358170274";
-const BOT_VERSION = "4.9";
+const BOT_VERSION = "5.0";
 
 const updateNotes = `**Version ${BOT_VERSION}
-  - Kayıt sistemi eksikler giderildi hatalar düzeltildi.**`;
+  - Takım sistemi beta versiyon eklendi.**`;
 
 const client = new BotClient({
   partials: [Partials.Message, Partials.Channel, Partials.GuildMember, Partials.User, Partials.Reaction],
