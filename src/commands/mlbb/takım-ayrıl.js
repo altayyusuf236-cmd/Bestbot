@@ -7,7 +7,7 @@ const Team = require("../../database/schemas/Team");
 module.exports = {
   name: "takım-ayrıl",
   description: "Mevcut olarak bulunduğunuz MLBB takımından kendi isteğinizle ayrılırsınız.",
-  category: "MLBB_TAKIM",
+  category: "UTILITY",
   cooldown: 20,
   botPermissions: ["EmbedLinks"],
   command: {

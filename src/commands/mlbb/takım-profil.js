@@ -8,7 +8,7 @@ const Team = require("../../database/schemas/Team");
 module.exports = {
   name: "takım-profil",
   description: "Bir kullanıcının bağlı MLBB oyun hesabını ve takım durumunu görüntüler.",
-  category: "MLBB_TAKIM",
+  category: "UTILITY",
   cooldown: 5,
   botPermissions: ["EmbedLinks"],
   command: {

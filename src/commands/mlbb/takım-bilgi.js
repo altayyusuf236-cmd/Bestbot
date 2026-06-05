@@ -8,7 +8,7 @@ const UserPlayer = require("../../database/schemas/UserPlayer");
 module.exports = {
   name: "takım-bilgi",
   description: "Bir MLBB takımının detaylı profilini ve kadrosunu görüntülersiniz.",
-  category: "MLBB_TAKIM",
+  category: "UTILITY",
   cooldown: 5,
   botPermissions: ["EmbedLinks"],
   command: {

@@ -7,7 +7,7 @@ const Team = require("../../database/schemas/Team");
 module.exports = {
   name: "takım-puan-çıkar",
   description: "Yetkili: Belirtilen takımdan manuel olarak puan düşer.",
-  category: "MLBB_TAKIM",
+  category: "UTILITY",
   cooldown: 5,
   botPermissions: ["EmbedLinks"],
   userPermissions: ["Administrator"],

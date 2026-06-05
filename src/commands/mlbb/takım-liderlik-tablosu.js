@@ -7,7 +7,7 @@ const Team = require("../../database/schemas/Team");
 module.exports = {
   name: "takım-liderlik-tablosu",
   description: "Sunucudaki takımların puan durumuna göre genel liderlik sıralamasını gösterir.",
-  category: "MLBB_TAKIM",
+  category: "UTILITY",
   cooldown: 15,
   botPermissions: ["EmbedLinks"],
   command: {

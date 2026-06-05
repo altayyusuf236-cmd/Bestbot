@@ -9,7 +9,7 @@ const GECERLI_ROLLER = ["TANK", "SUİKASTÇI", "NİŞANCI", "SAVAŞÇI", "DESTEK
 module.exports = {
   name: "takım-profil-bağla",
   description: "MLBB oyun hesabınızı ve ana rolünüzü Discord profilinize bağlarsınız.",
-  category: "MLBB_TAKIM",
+  category: "UTILITY",
   cooldown: 10,
   botPermissions: ["EmbedLinks"],
   command: {

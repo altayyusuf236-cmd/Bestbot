@@ -7,7 +7,7 @@ const Team = require("../../database/schemas/Team");
 module.exports = {
   name: "takım-at",
   description: "Takımınızda bulunan bir üyeyi takımdan ihraç edersiniz.",
-  category: "MLBB_TAKIM",
+  category: "UTILITY",
   cooldown: 10,
   botPermissions: ["EmbedLinks"],
   command: {

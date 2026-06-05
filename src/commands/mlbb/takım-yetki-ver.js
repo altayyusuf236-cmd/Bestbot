@@ -7,7 +7,7 @@ const Team = require("../../database/schemas/Team");
 module.exports = {
   name: "takım-yetki-ver",
   description: "Takımınızdaki bir üyeye Kaptan (Yönetici) yetkisi verirsiniz.",
-  category: "MLBB_TAKIM",
+  category: "UTILITY",
   cooldown: 10,
   botPermissions: ["EmbedLinks"],
   command: {

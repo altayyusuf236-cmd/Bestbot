@@ -7,7 +7,7 @@ const Team = require("../../database/schemas/Team");
 module.exports = {
   name: "takım-rol-oluştur",
   description: "Yetkili: Belirtilen takım için sunucuda otomatik rol oluşturur.",
-  category: "MLBB_TAKIM",
+  category: "UTILITY",
   cooldown: 10,
   userPermissions: ["Administrator"],
   command: {

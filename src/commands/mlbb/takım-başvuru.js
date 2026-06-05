@@ -8,7 +8,7 @@ const TeamRequest = require("../../database/schemas/TeamRequest");
 module.exports = {
   name: "takım-başvuru",
   description: "Bir MLBB takımına katılmak için başvuru talebi gönderirsiniz.",
-  category: "MLBB_TAKIM",
+  category: "UTILITY",
   cooldown: 20,
   botPermissions: ["EmbedLinks"],
   command: {

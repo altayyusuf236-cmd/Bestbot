@@ -7,7 +7,7 @@ const Team = require("../../database/schemas/Team");
 module.exports = {
   name: "takım-rol-ver",
   description: "Yetkili: Takım rolünü takımdaki tüm üyelere otomatik olarak dağıtır.",
-  category: "MLBB_TAKIM",
+  category: "UTILITY",
   cooldown: 15,
   userPermissions: ["Administrator"],
   command: {

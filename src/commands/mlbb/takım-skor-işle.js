@@ -7,7 +7,7 @@ const Team = require("../../database/schemas/Team");
 module.exports = {
   name: "takım-skor-işle",
   description: "Yetkili: İki takım arasındaki maç sonucunu veritabanına işler.",
-  category: "MLBB_TAKIM",
+  category: "UTILITY",
   cooldown: 5,
   botPermissions: ["EmbedLinks"],
   userPermissions: ["Administrator"], // Sadece sunucu yöneticileri kullanabilir

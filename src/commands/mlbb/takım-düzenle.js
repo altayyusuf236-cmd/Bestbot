@@ -7,7 +7,7 @@ const Team = require("../../database/schemas/Team");
 module.exports = {
   name: "takım-düzenle",
   description: "Sahibi olduğunuz takımın bilgilerini güncellersiniz.",
-  category: "MLBB_TAKIM",
+  category: "UTILITY",
   cooldown: 10,
   botPermissions: ["EmbedLinks"],
   command: {

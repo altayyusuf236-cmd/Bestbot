@@ -7,7 +7,7 @@ const Team = require("../../database/schemas/Team"); // Şema yolunu klasör yap
 module.exports = {
   name: "takım-kapat",
   description: "Sahibi olduğunuz MLBB takımını tamamen kapatır ve siler.",
-  category: "MLBB_TAKIM",
+  category: "UTILITY",
   cooldown: 15,
   botPermissions: ["EmbedLinks"],
   command: {

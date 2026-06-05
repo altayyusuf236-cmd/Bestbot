@@ -7,7 +7,7 @@ const Team = require("../../database/schemas/Team");
 module.exports = {
   name: "takım-liderlik-aktar",
   description: "Takımınızın liderlik yetkilerini başka bir takım üyesine devredersiniz.",
-  category: "MLBB_TAKIM",
+  category: "UTILITY",
   cooldown: 30, // Güvenlik gerekçesiyle bekleme süresi yüksek tutulmuştur.
   botPermissions: ["EmbedLinks"],
   command: {
@@ -69,4 +69,28 @@ async function liderlikAktarimMotoru(guildId, currentLeader, newLeader) {
     // 3. Yetki devri işlemlerini veritabanına işleme
     takim.leaderId = newLeader.id;
 
-    // Eğer
+    // Eğer yeni lider eski kaptanlar listesindeyse, oradan çıkartalım
+    if (takim.captains.includes(newLeader.id)) {
+      takim.captains = takim.captains.filter(id => id !== newLeader.id);
+    }
+
+    await takim.save();
+
+    // 4. Başarı Embed çıktısı
+    const devirEmbed = new EmbedBuilder()
+      .setColor("#3498DB")
+      .setTitle("👑 Takım Liderliği Devredildi!")
+      .setDescription(`**${takim.teamName}** takımının yeni lideri başarıyla belirlendi.`)
+      .addFields(
+        { name: "Eski Lider", value: `<@${currentLeader.id}>`, inline: true },
+        { name: "Yeni Lider", value: `<@${newLeader.id}>`, inline: true }
+      )
+      .setTimestamp();
+
+    return { embeds: [devirEmbed] };
+
+  } catch (error) {
+    console.error("Liderlik aktarımında hata oluştu:", error);
+    return "❌ Liderlik aktarımı esnasında teknik bir hata meydana geldi.";
+  }
+}
