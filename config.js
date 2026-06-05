@@ -79,7 +79,6 @@ module.exports = {
   IMAGE: {
     ENABLED: true,
     BASE_API: "https://api.luminabot.xyz",
-,
   },
 
   INVITE: {
