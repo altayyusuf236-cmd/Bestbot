@@ -18,7 +18,7 @@ const KayitAyar = require("@src/database/schemas/KayitAyar");
 const KayitStat = require("@src/database/schemas/KayitStat");
 const { schemas } = require("@src/database/mongoose.js"); 
 const { RenkAyar } = schemas;
-const YetkiliAlim = require("../database/schemas/YetkiliAlim"); 
+const YetkiliAlim = require("../../database/schemas/YetkiliAlim"); 
 
 /**
  * @param {import('@src/structures').BotClient} client
