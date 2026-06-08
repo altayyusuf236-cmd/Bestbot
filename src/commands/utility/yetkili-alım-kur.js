@@ -6,7 +6,7 @@ module.exports = {
   description: "Butonlu yetkili alım sistemini sunucuda aktif eder.",
   category: "UTILITY",
   cooldown: 10,
-  userPermissions: [PermissionFlagsBits.Administrator], // Sadece yöneticiler kurabilsin
+  userPermissions: ["Administrator"], // Sadece yöneticiler kurabilsin
   botPermissions: ["EmbedLinks", "SendMessages"],
   command: {
     enabled: true,

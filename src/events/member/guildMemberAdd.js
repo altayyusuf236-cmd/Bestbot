@@ -61,7 +61,7 @@ module.exports = async (client, member) => {
           const kurulusZamani = Math.floor(user.createdTimestamp / 1000);
 
           // --- 🏅 DISCORD ROZETLERİNİ TESPİT ETME ---
-          const rozet Emojileri = {
+          const rozetEmojileri = {
             Staff: "🔨", Partner: "🤝", Hypesquad: "👑", BugHunterLevel1: "🐛",
             BugHunterLevel2: "🪲", HypeSquadOnlineHouse1: "🏠", HypeSquadOnlineHouse2: "⚡",
             HypeSquadOnlineHouse3: "🔥", PremiumEarlySupporter: "💎", VerifiedDeveloper: "💻",

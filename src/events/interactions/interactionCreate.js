@@ -9,6 +9,8 @@ const {
   EmbedBuilder, 
   ButtonBuilder, 
   ButtonStyle, 
+  Client,
+  Collection,
   PermissionFlagsBits 
 } = require("discord.js");
 
@@ -16,7 +18,6 @@ const KayitAyar = require("@src/database/schemas/KayitAyar");
 const KayitStat = require("@src/database/schemas/KayitStat");
 const { schemas } = require("@src/database/mongoose.js"); 
 const { RenkAyar } = schemas;
-const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, EmbedBuilder } = require("discord.js");
 const YetkiliAlim = require("../database/schemas/YetkiliAlim"); 
 
 /**
