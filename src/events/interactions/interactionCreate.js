@@ -51,6 +51,50 @@ module.exports = async (client, interaction) => {
     else return interaction.reply({ content: "An error has occurred", ephemeral: true }).catch(() => {});
   } else if (interaction.isButton()) {
 
+    // 📩 YETKİLİ ALIM SİSTEMİ: BUTONA BASILDIĞINDA FORM (MODAL) AÇMA
+    if (interaction.customId === "yetkili_basvuru_baslat") {
+      const modal = new ModalBuilder()
+        .setCustomId("yetkili_basvuru_formu")
+        .setTitle("Yetkili Başvuru Formu");
+
+      const isimYasInput = new TextInputBuilder()
+        .setCustomId("basvuru_isim_yas")
+        .setLabel("Adınız ve Yaşınız?")
+        .setPlaceholder("Örn: Ahmet, 17")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true);
+
+      const deneyimInput = new TextInputBuilder()
+        .setCustomId("basvuru_deneyim")
+        .setLabel("Daha önce yetkililik yaptınız mı?")
+        .setPlaceholder("Varsa deneyimleriniz veya referanslarınız...")
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(true);
+
+      const aktiflikInput = new TextInputBuilder()
+        .setCustomId("basvuru_aktiflik")
+        .setLabel("Günlük ortalama kaç saat aktifsiniz?")
+        .setPlaceholder("Örn: Günlük 4-5 saat aktif olabilirim.")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true);
+
+      const amaciInput = new TextInputBuilder()
+        .setCustomId("basvuru_amac")
+        .setLabel("Neden seni ekibimize seçmeliyiz?")
+        .setPlaceholder("Sunucuya ne gibi katkıların dokunabilir?")
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(true);
+
+      modal.addComponents(
+        new ActionRowBuilder().addComponents(isimYasInput),
+        new ActionRowBuilder().addComponents(deneyimInput),
+        new ActionRowBuilder().addComponents(aktiflikInput),
+        new ActionRowBuilder().addComponents(amaciInput)
+      );
+
+      return await interaction.showModal(modal);
+    }
+
     if (interaction.customId.startsWith('renksec_')) {
         await interaction.deferReply({ ephemeral: true });
         const ayar = await RenkAyar.findOne({ guildId: interaction.guild.id });
@@ -102,7 +146,7 @@ module.exports = async (client, interaction) => {
 
     if (interaction.customId.startsWith('kayit_iptal_')) {
         if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
-            return interaction.reply({ content: "❌ Bu işle sadece Üst Düzey Yöneticiler iptal edebilir!", ephemeral: true });
+            return interaction.reply({ content: "❌ Bu işle sadece Üst Düzey Yörisis İptal edebilir!", ephemeral: true });
         }
         await interaction.deferReply({ ephemeral: true });
         const parts = interaction.customId.split('_');
@@ -130,7 +174,7 @@ module.exports = async (client, interaction) => {
         return interaction.editReply({ content: "✅ Kayıt işlemi başarıyla iptal edildi ve veritabanı senkronize edildi!" });
     }
 
-    // 🎙️ ÖZEL ODA BUTONLARI (Modallarda asla deferReply YOK!)
+    // 🎙️ ÖZEL ODA BUTONLARI
     if (interaction.customId.startsWith("oda_")) {
         const textChannel = interaction.channel;
         const voiceChannel = interaction.guild.channels.cache.get(textChannel.topic);
@@ -163,111 +207,6 @@ module.exports = async (client, interaction) => {
             return interaction.showModal(modal);
         }
     }
-// =========================================================
-// 🎛️ YETKİLİ ALIM SİSTEMİ INTERACTION HANDLER
-// =========================================================
-
-// 1. BUTONA BASILDIĞINDA FORM (MODAL) AÇMA
-if (interaction.isButton() && interaction.customId === "yetkili_basvuru_baslat") {
-  const modal = new ModalBuilder()
-    .setCustomId("yetkili_basvuru_formu")
-    .setTitle("Yetkili Başvuru Formu");
-
-  // Sorular
-  const isimYasInput = new TextInputBuilder()
-    .setCustomId("basvuru_isim_yas")
-    .setLabel("Adınız ve Yaşınız?")
-    .setPlaceholder("Örn: Ahmet, 17")
-    .setStyle(TextInputStyle.Short)
-    .setRequired(true);
-
-  const deneyimInput = new TextInputBuilder()
-    .setCustomId("basvuru_deneyim")
-    .setLabel("Daha önce yetkililik yaptınız mı?")
-    .setPlaceholder("Varsa deneyimleriniz veya referanslarınız...")
-    .setStyle(TextInputStyle.Paragraph)
-    .setRequired(true);
-
-  const aktiflikInput = new TextInputBuilder()
-    .setCustomId("basvuru_aktiflik")
-    .setLabel("Günlük ortalama kaç saat aktifsiniz?")
-    .setPlaceholder("Örn: Günlük 4-5 saat aktif olabilirim.")
-    .setStyle(TextInputStyle.Short)
-    .setRequired(true);
-
-  const amaciInput = new TextInputBuilder()
-    .setCustomId("basvuru_amac")
-    .setLabel("Neden seni ekibimize seçmeliyiz?")
-    .setPlaceholder("Sunucuya ne gibi katkıların dokunabilir?")
-    .setStyle(TextInputStyle.Paragraph)
-    .setRequired(true);
-
-  // Satırları ekleme
-  modal.addComponents(
-    new ActionRowBuilder().addComponents(isimYasInput),
-    new ActionRowBuilder().addComponents(deneyimInput),
-    new ActionRowBuilder().addComponents(aktiflikInput),
-    new ActionRowBuilder().addComponents(amaciInput)
-  );
-
-  return await interaction.showModal(modal);
-}
-
-// 2. FORM DOLDURULUP GÖNDERİLDİĞİNDE LOG KANALINA POSTALAMA
-if (interaction.isModalSubmit() && interaction.customId === "yetkili_basvuru_formu") {
-  await interaction.deferReply({ ephemeral: true });
-
-  try {
-    const ayar = await YetkiliAlim.findOne({ guildId: interaction.guild.id });
-    if (!ayar || !ayar.logKanalId) {
-      return await interaction.followUp({ content: "❌ Sistem log kanalı veritabanında bulunamadı! Lütfen yöneticilere bildirin.", ephemeral: true });
-    }
-
-    const logKanali = interaction.guild.channels.cache.get(ayar.logKanalId);
-    if (!logKanali) {
-      return await interaction.followUp({ content: "❌ Başvuru log kanalı sunucuda bulunamadı veya botun erişim yetkisi yok!", ephemeral: true });
-    }
-
-    // Formdan gelen verileri çekiyoruz
-    const isimYas = interaction.fields.getTextInputValue("basvuru_isim_yas");
-    const deneyim = interaction.fields.getTextInputValue("basvuru_deneyim");
-    const aktiflik = interaction.fields.getTextInputValue("basvuru_aktiflik");
-    const amac = interaction.fields.getTextInputValue("basvuru_amac");
-
-    // Başvuru yapanın Discord bilgileri hesaplamaları
-    const hesapKurulus = Math.floor(interaction.user.createdTimestamp / 1000);
-
-    // Yetkililerin göreceği muazzam log embed tasarımı
-    const logEmbed = new EmbedBuilder()
-      .setColor("#E67E22")
-      .setTitle("📥 Yeni Yetkili Başvurusu Geldi!")
-      .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
-      .setDescription(`⚡ <@${interaction.user.id}> kullanıcısı sunucuda yetkili olabilmek için form doldurdu.`)
-      .addFields(
-        { name: "👤 Başvuran Kullanıcı", value: `${interaction.user.tag} (\`${interaction.user.id}\`)`, inline: false },
-        { name: "📅 Discord Kayıt Tarihi", value: `<t:${hesapKurulus}:F> (<t:${hesapKurulus}:R>)`, inline: false },
-        { name: "📝 Ad / Yaş", value: `\`\`\`text\n${isimYas}\`\`\``, inline: false },
-        { name: "⏳ Günlük Aktiflik Süresi", value: `\`\`\`text\n${aktiflik}\`\`\``, inline: false },
-        { name: "🛡️ Deneyimleri", value: `\`\`\`text\n${deneyim}\`\`\``, inline: false },
-        { name: "🏆 Başvuru Amacı / Katkıları", value: `\`\`\`text\n${amac}\`\`\``, inline: false }
-      )
-      .setTimestamp()
-      .setFooter({ text: "İncelemek için kullanıcı ile DM üzerinden iletişime geçebilirsiniz." });
-
-    // Log kanalına gönderiyoruz
-    await logKanali.send({ embeds: [logEmbed] });
-
-    // Başvuran kişiye sadece kendisinin göreceği başarı mesajı
-    return await interaction.followUp({
-      content: "✅ **Başvurunuz başarıyla alındı!** Yönetim ekibimiz formu inceledikten sonra sizinle iletişime geçecektir. Teşekkür ederiz!",
-      ephemeral: true
-    });
-
-  } catch (error) {
-    console.error("Başvuru gönderilirken hata patladı:", error);
-    return await interaction.followUp({ content: "❌ Başvurunuz kaydedilirken teknik bir hata oluştu.", ephemeral: true });
-  }
-}
 
     switch (interaction.customId) {
       case "TICKET_CREATE": return ticketHandler.handleTicketOpen(interaction);
@@ -279,6 +218,58 @@ if (interaction.isModalSubmit() && interaction.customId === "yetkili_basvuru_for
   }
 
   else if (interaction.type === InteractionType.ModalSubmit) {
+    
+    // 📝 YETKİLİ ALIM SİSTEMİ: FORM DOLDURULUP GÖNDERİLDİĞİNDE LOG KANALINA POSTALAMA
+    if (interaction.customId === "yetkili_basvuru_formu") {
+      await interaction.deferReply({ ephemeral: true });
+
+      try {
+        const ayar = await YetkiliAlim.findOne({ guildId: interaction.guild.id });
+        if (!ayar || !ayar.logKanalId) {
+          return await interaction.followUp({ content: "❌ Sistem log kanalı veritabanında bulunamadı! Lütfen yöneticilere bildirin.", ephemeral: true });
+        }
+
+        const logKanali = interaction.guild.channels.cache.get(ayar.logKanalId);
+        if (!logKanali) {
+          return await interaction.followUp({ content: "❌ Başvuru log kanalı sunucuda bulunamadı veya botun erişim yetkisi yok!", ephemeral: true });
+        }
+
+        const isimYas = interaction.fields.getTextInputValue("basvuru_isim_yas");
+        const deneyim = interaction.fields.getTextInputValue("basvuru_deneyim");
+        const aktiflik = interaction.fields.getTextInputValue("basvuru_aktiflik");
+        const amac = interaction.fields.getTextInputValue("basvuru_amac");
+
+        const hesapKurulus = Math.floor(interaction.user.createdTimestamp / 1000);
+
+        const logEmbed = new EmbedBuilder()
+          .setColor("#E67E22")
+          .setTitle("📥 Yeni Yetkili Başvurusu Geldi!")
+          .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
+          .setDescription(`⚡ <@${interaction.user.id}> kullanıcısı sunucuda yetkili olabilmek için form doldurdu.`)
+          .addFields(
+            { name: "👤 Başvuran Kullanıcı", value: `${interaction.user.tag} (\`${interaction.user.id}\`)`, inline: false },
+            { name: "📅 Discord Kayıt Tarihi", value: `<t:${hesapKurulus}:F> (<t:${hesapKurulus}:R>)`, inline: false },
+            { name: "📝 Ad / Yaş", value: `\`\`\`text\n${isimYas}\`\`\``, inline: false },
+            { name: "⏳ Günlük Aktiflik Süresi", value: `\`\`\`text\n${aktiflik}\`\`\``, inline: false },
+            { name: "🛡️ Deneyimleri", value: `\`\`\`text\n${deneyim}\`\`\``, inline: false },
+            { name: "🏆 Başvuru Amacı / Katkıları", value: `\`\`\`text\n${amac}\`\`\``, inline: false }
+          )
+          .setTimestamp()
+          .setFooter({ text: "İncelemek için kullanıcı ile DM üzerinden iletişime geçebilirsiniz." });
+
+        await logKanali.send({ embeds: [logEmbed] });
+
+        return await interaction.followUp({
+          content: "✅ **Başvurunuz başarıyla alındı!** Yönetim ekibimiz formu inceledikten sonra sizinle iletişime geçecektir. Teşekkür ederiz!",
+          ephemeral: true
+        });
+
+      } catch (error) {
+        console.error("Başvuru gönderilirken hata patladı kanka:", error);
+        return await interaction.followUp({ content: "❌ Başvurunuz kaydedilirken teknik bir hata oluştu.", ephemeral: true });
+      }
+    }
+
     // 🎙️ ODA MODAL İŞLEMLERİ
     if (interaction.customId === "modal_oda_rename") {
         await interaction.deferReply({ ephemeral: true });
@@ -292,7 +283,6 @@ if (interaction.isModalSubmit() && interaction.customId === "yetkili_basvuru_for
         }
     }
 
-    // Diğer oda modalları için boşa düşme/çökme engeli
     if (interaction.customId === "modal_oda_add" || interaction.customId === "modal_oda_kick") {
         return interaction.reply({ content: "🛠️ Bu oda özelliği şu an yapım aşamasında!", ephemeral: true }).catch(() => {});
     }
@@ -330,17 +320,12 @@ if (interaction.isModalSubmit() && interaction.customId === "yetkili_basvuru_for
             }
             await interaction.editReply({ content: `✅ **${uye.user.username}** başarıyla kaydedildi!` });
 
-            // ==========================================
-            // 📢 LOG VE SOHBET SİSTEMİ (YENİ ENTEGRASYON)
-            // ==========================================
-            
-            // 1. Log Kanalına Detaylı Embed Gönderme
             if (ayar.log) {
                 const logKanal = interaction.guild.channels.cache.get(ayar.log) || await interaction.guild.channels.fetch(ayar.log).catch(() => null);
                 if (logKanal) {
                     const logEmbed = new EmbedBuilder()
                         .setTitle("📥 Yeni Üye Kaydedildi")
-                        .setColor(0x2ecc71) // Yeşil renk
+                        .setColor(0x2ecc71)
                         .addFields(
                             { name: "Kayıt Edilen", value: `${uye} (\`${uye.id}\`)`, inline: true },
                             { name: "Kayıt Eden Yetkili", value: `${interaction.user} (\`${interaction.user.id}\`)`, inline: true },
@@ -353,7 +338,6 @@ if (interaction.isModalSubmit() && interaction.customId === "yetkili_basvuru_for
                 }
             }
 
-            // 2. Sohbet Kanalına Hoş Geldin Mesajı Atma
             if (ayar.chatKanal) {
                 const sohbetKanal = interaction.guild.channels.cache.get(ayar.chatKanal) || await interaction.guild.channels.fetch(ayar.chatKanal).catch(() => null);
                 if (sohbetKanal) {
@@ -362,7 +346,7 @@ if (interaction.isModalSubmit() && interaction.customId === "yetkili_basvuru_for
                     }).catch(() => {});
                 }
             }
-            return; // İşlem başarıyla bitti, alt kodlara sızmasın diye kesiyoruz.
+            return;
 
         } catch (error) {
             console.error("Kayıt sırasında bir hata oluştu kanka:", error);
