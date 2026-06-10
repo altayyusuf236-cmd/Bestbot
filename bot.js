@@ -22,14 +22,13 @@ validateConfiguration();
 // ⚙️ AYARLAR VE GÜNCELLEME NOTLARI
 // ==========================================
 const OWNER_ID = "1469310778518536265"; 
-const UPDATE_CHANNEL_ID = "1490088015626764341";
+const UPDATE_CHANNEL_ID = "1514333526085079192";
 const LOG_CHANNEL_ID = "1503387573358170274";
-const BOT_VERSION = "5.1";
+const BOT_VERSION = "5.2";
 
 const updateNotes = `**Version ${BOT_VERSION}
-  - Kayıt sistemi geliştirildi.
-  - Takım sistemi tamamlandı.
-  - Yetkili alım modalı eklendi.**`;
+  - Takım sistemi hatalı komutlar fixlendi.
+  - Güncelleme notları için kanal açıldı.**`;
 
 const client = new BotClient({
   partials: [Partials.Message, Partials.Channel, Partials.GuildMember, Partials.User, Partials.Reaction],
