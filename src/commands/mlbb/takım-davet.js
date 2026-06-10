@@ -33,38 +33,44 @@ module.exports = {
       return message.safeReply("❌ **Hatalı Kullanım!** Lütfen davet etmek istediğiniz üyeyi etiketleyin veya ID'sini girin.");
     }
 
-    const response = await davetMotoru(message, message.author, targetUser);
-    if (response) await message.safeReply(response);
+    await davetMotoru(message, message.author, targetUser, false);
   },
 
   async interactionRun(interaction) {
+    // 🤔 "Düşünüyor..." efektini vererek Discord'un 3 saniyelik limitini kırıyoruz
+    await interaction.deferReply().catch(() => {});
     const targetUser = interaction.options.getUser("üye");
 
-    const response = await davetMotoru(interaction, interaction.user, targetUser);
-    if (response) await interaction.followUp(response);
+    await davetMotoru(interaction, interaction.user, targetUser, true);
   },
 };
 
-async function davetMotoru(context, inviter, targetUser) {
+async function davetMotoru(context, inviter, targetUser, isSlash) {
   const guildId = context.guild.id;
 
-  if (targetUser.bot) return "❌ Bir botu takıma davet edemezsiniz.";
-  if (inviter.id === targetUser.id) return "❌ Kendinizi takıma davet edemezsiniz.";
+  // Hata mesajlarını gönderme fonksiyonu
+  const sendError = async (text) => {
+    if (isSlash) return context.editReply({ content: text }).catch(() => {});
+    return context.safeReply(text);
+  };
+
+  if (targetUser.bot) return sendError("❌ Bir botu takıma davet edemezsiniz.");
+  if (inviter.id === targetUser.id) return sendError("❌ Kendinizi takıma davet edemezsiniz.");
 
   try {
-    // 1. Davet eden kişinin yetki kontrolü (Lider veya Kaptan olmalı)
+    // 1. Davet eden kişinin yetki kontrolü
     const takim = await Team.findOne({
       guildId,
       $or: [{ leaderId: inviter.id }, { captains: inviter.id }]
     });
 
     if (!takim) {
-      return "❌ Bu komutu sadece takım liderleri veya kaptanları kullanabilir.";
+      return sendError("❌ Bu komutu sadece takım liderleri veya kaptanları kullanabilir.");
     }
 
-    // 2. Maksimum üye limiti kontrolü (Örn: Resmiyet adına sınır 10 kişi)
+    // 2. Maksimum üye limiti kontrolü
     if (takim.members.length >= 10) {
-      return "❌ Takımınız maksimum üye limitine (10 Oyuncu) ulaşmıştır.";
+      return sendError("❌ Takımınız maksimum üye limitine (10 Oyuncu) ulaşmıştır.");
     }
 
     // 3. Hedef oyuncu zaten bir takımda mı kontrolü
@@ -74,7 +80,7 @@ async function davetMotoru(context, inviter, targetUser) {
     });
 
     if (hedefTakimdaMi) {
-      return "❌ Davet etmeye çalıştığınız oyuncu zaten bir takımın üyesidir.";
+      return sendError("❌ Davet etmeye çalıştığınız oyuncu zaten bir takımın üyesidir.");
     }
 
     // 4. Aktif bir davet var mı kontrolü
@@ -87,7 +93,7 @@ async function davetMotoru(context, inviter, targetUser) {
     });
 
     if (aktifDavet) {
-      return "❌ Bu oyuncuya gönderilmiş henüz sonuçlanmamış aktif bir davet bulunuyor.";
+      return sendError("❌ Bu oyuncuya gönderilmiş henüz sonuçlanmamış aktif bir davet bulunuyor.");
     }
 
     // 5. Geçici davet kaydını veritabanına işleme
@@ -116,31 +122,35 @@ async function davetMotoru(context, inviter, targetUser) {
       new ButtonBuilder().setCustomId("reject_invite").setLabel("Reddet").setStyle(ButtonStyle.Danger)
     );
 
-    // Mesajı gönderme (Slash veya Normal mesaja göre ayırt edilir)
-const sendMessage = context.command 
-    ? await context.reply({ embeds: [davetEmbed], components: [row], fetchReply: true }).catch(() => null)
-    : await context.followUp({ embeds: [davetEmbed], components: [row] }).catch(() => null);
+    // 📬 Mesaj Gönderme Alanı (Hatalardan Arındırılmış Net Kurgu)
+    let sendMessage;
+    if (isSlash) {
+      sendMessage = await context.editReply({ content: " ", embeds: [davetEmbed], components: [row] }).catch(() => null);
+    } else {
+      sendMessage = await context.safeReply({ embeds: [davetEmbed], components: [row] }).catch(() => null);
+    }
 
-if (!sendMessage) return;
-
+    // Eğer mesaj bir sebeple atılamadıysa veritabanındaki kaydı sil ve işlemi iptal et kanka
+    if (!sendMessage) {
+      await TeamRequest.deleteOne({ _id: yeniDavet._id });
+      return;
+    }
 
     // 7. Buton Etkileşimi (Collector) Süreci
     const filter = (i) => i.user.id === targetUser.id;
     const collector = sendMessage.createMessageComponentCollector({
       filter,
       componentType: ComponentType.Button,
-      time: 60000 // 1 dakika
+      time: 60000 
     });
 
     collector.on("collect", async (interaction) => {
-      // Güncel takım durumunu tekrar kontrol et (Bu esnada takım silinmiş veya dolmuş olabilir)
       const guncelTakim = await Team.findById(takim._id);
       if (!guncelTakim) {
         return interaction.update({ content: "❌ Davet gönderilen takım artık mevcut değil.", embeds: [], components: [] });
       }
 
       if (interaction.customId === "accept_invite") {
-        // Çift takım kontrolü (Oyuncu bu 1 dakika içinde başka takıma girmiş olabilir)
         const oyuncuKontrol = await Team.findOne({
           guildId,
           $or: [{ leaderId: targetUser.id }, { captains: targetUser.id }, { members: targetUser.id }]
@@ -154,7 +164,6 @@ if (!sendMessage) return;
           return interaction.update({ content: "❌ Takım kontenjanı dolduğu için giriş başarısız.", embeds: [], components: [] });
         }
 
-        // Veritabanı güncellemeleri
         guncelTakim.members.push(targetUser.id);
         await guncelTakim.save();
 
@@ -180,18 +189,13 @@ if (!sendMessage) return;
 
     collector.on("end", async (collected, reason) => {
       if (reason === "time") {
-        // Süre bittiğinde bekleyen isteği silme
         await TeamRequest.deleteOne({ _id: yeniDavet._id, status: "PENDING" });
-        
-        // Butonları devre dışı bırakma veya mesajı güncelleme
-        await sendMessage.edit({ content: "⌛ Davet zaman aşımına uğradı.", components: [] }).catch(() => null);
+        await sendMessage.edit({ content: "⌛ Davet zaman aşımına uğradı.", embeds: [], components: [] }).catch(() => null);
       }
     });
 
-    return null;
-
   } catch (error) {
     console.error("Takım davet komutunda hata oluştu:", error);
-    return "❌ İşlem sırasında teknik bir hata meydana geldi.";
+    if (isSlash) await context.editReply({ content: "❌ İşlem sırasında teknik bir hata meydana geldi." }).catch(() => {});
   }
 }
