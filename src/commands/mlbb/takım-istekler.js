@@ -21,18 +21,24 @@ module.exports = {
   },
 
   async messageRun(message) {
-    const response = await istekYonetimMotoru(message, message.author);
-    if (response) await message.safeReply(response);
+    await istekYonetimMotoru(message, message.author, false);
   },
 
   async interactionRun(interaction) {
-    const response = await istekYonetimMotoru(interaction, interaction.user);
-    if (response) await interaction.followUp(response);
+    // 🤔 Discord'un 3 saniyelik limitini aşmak için "Düşünüyor..." efektini başlatıyoruz
+    await interaction.deferReply().catch(() => {});
+    await istekYonetimMotoru(interaction, interaction.user, true);
   },
 };
 
-async function istekYonetimMotoru(context, manager) {
+async function istekYonetimMotoru(context, manager, isSlash) {
   const guildId = context.guild.id;
+
+  // Hata mesajlarını gönderme fonksiyonu
+  const sendError = async (text) => {
+    if (isSlash) return context.editReply({ content: text }).catch(() => {});
+    return context.safeReply ? context.safeReply(text) : context.reply(text);
+  };
 
   try {
     // 1. İşlemi yapan kişinin yetki kontrolü (Lider veya Kaptan olmalı)
@@ -42,7 +48,7 @@ async function istekYonetimMotoru(context, manager) {
     });
 
     if (!takim) {
-      return "❌ Bu komutu sadece takım liderleri veya kaptanları kullanabilir.";
+      return sendError("❌ Bu komutu sadece takım liderleri veya kaptanları kullanabilir.");
     }
 
     // 2. Takıma gelen bekleyen (PENDING) başvuruları çekme
@@ -54,7 +60,7 @@ async function istekYonetimMotoru(context, manager) {
     }).sort({ createdAt: 1 }); // Eskiden yeniye sıralama
 
     if (basvurular.length === 0) {
-      return `ℹ️ **${takim.teamName}** takımı için şu anda bekleyen herhangi bir katılım başvurusu bulunmuyor.`;
+      return sendError(`ℹ️ **${takim.teamName}** takımı için şu anda bekleyen herhangi bir katılım başvurusu bulunmuyor.`);
     }
 
     // 3. İlk sıradaki başvuruyu işleme alma
@@ -76,7 +82,16 @@ async function istekYonetimMotoru(context, manager) {
       new ButtonBuilder().setCustomId("manager_reject").setLabel("Reddet").setStyle(ButtonStyle.Danger)
     );
 
-    const sendMessage = context.command ? await context.safeReply({ embeds: [panelEmbed], components: [row] }) : await context.followUp({ embeds: [panelEmbed], components: [row] });
+    // 📬 Mesaj Gönderme Alanı (Hatalardan Arındırılmış Net Kurgu)
+    let sendMessage;
+    if (isSlash) {
+      sendMessage = await context.editReply({ content: " ", embeds: [panelEmbed], components: [row] }).catch(() => null);
+    } else {
+      sendMessage = context.safeReply 
+        ? await context.safeReply({ embeds: [panelEmbed], components: [row] }).catch(() => null)
+        : await context.reply({ embeds: [panelEmbed], components: [row] }).catch(() => null);
+    }
+
     if (!sendMessage) return null;
 
     // 4. Sadece lider veya kaptanların basabileceği filtre
@@ -97,7 +112,7 @@ async function istekYonetimMotoru(context, manager) {
       // Başvurunun hala aktif olup olmadığını kontrol etme
       const kontrolBasvuru = await TeamRequest.findById(aktifBasvuru._id);
       if (!kontrolBasvuru || kontrolBasvuru.status !== "PENDING") {
-        return interaction.update({ content: "❌ This başvuru daha önce sonuçlandırılmış veya iptal edilmiş.", embeds: [], components: [] });
+        return interaction.update({ content: "❌ Bu başvuru daha önce sonuçlandırılmış veya iptal edilmiş.", embeds: [], components: [] });
       }
 
       if (interaction.customId === "manager_accept") {
@@ -144,7 +159,7 @@ async function istekYonetimMotoru(context, manager) {
 
     collector.on("end", async (collected, reason) => {
       if (reason === "time") {
-        await sendMessage.edit({ content: "⌛ İşlem süresi doldu.", components: [] }).catch(() => null);
+        await sendMessage.edit({ content: "⌛ İşlem süresi doldu.", embeds: [], components: [] }).catch(() => null);
       }
     });
 
@@ -152,6 +167,6 @@ async function istekYonetimMotoru(context, manager) {
 
   } catch (error) {
     console.error("Takım istekler komutunda hata oluştu:", error);
-    return "❌ İşlem gerçekleştirilirken teknik bir hata oluştu.";
+    if (isSlash) await context.editReply({ content: "❌ İşlem gerçekleştirilirken teknik bir hata oluştu." }).catch(() => {});
   }
 }
