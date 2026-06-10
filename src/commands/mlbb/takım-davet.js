@@ -117,8 +117,12 @@ async function davetMotoru(context, inviter, targetUser) {
     );
 
     // Mesajı gönderme (Slash veya Normal mesaja göre ayırt edilir)
-    const sendMessage = context.command ? await context.safeReply({ embeds: [davetEmbed], components: [row] }) : await context.followUp({ embeds: [davetEmbed], components: [row] });
-    if (!sendMessage) return;
+const sendMessage = context.command 
+    ? await context.reply({ embeds: [davetEmbed], components: [row], fetchReply: true }).catch(() => null)
+    : await context.followUp({ embeds: [davetEmbed], components: [row] }).catch(() => null);
+
+if (!sendMessage) return;
+
 
     // 7. Buton Etkileşimi (Collector) Süreci
     const filter = (i) => i.user.id === targetUser.id;
