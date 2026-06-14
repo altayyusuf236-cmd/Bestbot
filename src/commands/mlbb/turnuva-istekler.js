@@ -15,7 +15,7 @@ const Team = require("../../database/schemas/Team");
  */
 module.exports = {
   name: "turnuva-istekler",
-  description: "Turnuvaya gelen katılım başvurularını görüntüler, dinamik yetkili rolüne göre onaylar veya reddedersiniz.",
+  description: "Turnuva katılım başvurularını görüntüler, onaylar veya reddedersiniz.",
   category: "ADMIN",
   cooldown: 5,
   botPermissions: ["EmbedLinks"],
