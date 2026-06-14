@@ -380,7 +380,12 @@ const MONGO_URI = process.env.MONGO_CONNECTION || "mongodb+srv://altayyusuf236_d
 mongoose.connect(MONGO_URI)
     .then(() => console.log('🟢 Başarıyla MongoDB Veritabanına Bağlanıldı kanka!'))
     .catch((err) => console.error('🔴 MongoDB Bağlantı Hatası:', err));
-
+    
+    const guild = client.guilds.cache.get("1487568096125259878");
+  if (guild) {
+    await guild.commands.set([]);
+    console.log("Sunucuya özel eski komutlar temizlendi!");
+}
 
 
   // Slash Kaydı
