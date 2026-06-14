@@ -88,7 +88,7 @@ async function puanCikarMotoru(guildId, staffUser, teamStr, amount) {
         { name: "Düşürülen Puan", value: `\`-${amount}\``, inline: true },
         { name: "Yeni Puan Durumu", value: `\`${takim.points}\``, inline: true }
       )
-      .footer({ text: `İşlemi Yapan Yetkili: ${staffUser.username}` })
+      .setFooter({ text: `İşlemi Yapan Yetkili: ${staffUser.username}` })
       .setTimestamp();
 
     return { embeds: [cikarEmbed] };
