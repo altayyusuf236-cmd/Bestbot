@@ -55,8 +55,8 @@ async function kayitDongusu(context, leader, isSlash) {
       return sendError("❌ Turnuvaya sadece bir takımın liderleri veya kaptanları kayıt başvurusu yapabilir.");
     }
 
-    // 3. Bu takımın halihazırda onaylanmış veya bekleyen bir başvurusu var mı?
-    const var MiBasvuru = await TournamentRequest.findOne({
+    // 3. Bu takımın halihazırda onaylanmış veya bekleyen bir başvurusu var mı? (Hata Düzeltildi)
+    const varMiBasvuru = await TournamentRequest.findOne({
       guildId,
       teamId: takim._id,
       status: { $in: ["PENDING", "ACCEPTED"] }
@@ -71,7 +71,6 @@ async function kayitDongusu(context, leader, isSlash) {
 
     // 4. Açılır menü (Select Menu) seçeneklerini hazırlama
     const menuSecenekleri = turnuva.slots.map(slot => {
-      // Slotun doluluk oranını yanına yazalım profesyonel dursun
       const doluluk = `${slot.teams.length}/${turnuva.maxTeamsPerSlot}`;
       return {
         label: `Saat: ${slot.time} (${doluluk} Takım)`,
@@ -117,12 +116,11 @@ async function kayitDongusu(context, leader, isSlash) {
         secilenAnaSaat = interaction.values[0];
 
         // Şimdi de YEDEK SAAT SEÇİMİ menüsünü hazırlıyoruz
-        // Seçtiği ana saati yedek olarak seçemesin diye seçeneklerden eliyoruz
         const yedekSecenekleri = menuSecenekleri.filter(s => s.value !== secilenAnaSaat);
 
         if (yedekSecenekleri.length === 0) {
-          // Eğer sunucuda tek bir slot açıldıysa yedek seçtirmeden direkt kaydet
-          returnawait basvuruKaydet(interaction, guildId, takim._id, leader.id, secilenAnaSaat, null);
+          // (Hata Düzeltildi: returnawait ayrıldı)
+          return await basvuruKaydet(interaction, guildId, takim._id, leader.id, secilenAnaSaat, null);
         }
 
         const yedekSaatMenu = new StringSelectMenuBuilder()
@@ -143,7 +141,6 @@ async function kayitDongusu(context, leader, isSlash) {
         const secilenYedekSaat = interaction.values[0];
         collector.stop("completed");
         
-        // Hem ana saati hem yedek saati aldıktan sonra veritabanına kaydediyoruz
         await basvuruKaydet(interaction, guildId, takim._id, leader.id, secilenAnaSaat, secilenYedekSaat);
       }
     });
