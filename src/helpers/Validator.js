@@ -57,12 +57,6 @@ Logger.info("Validating config file and environment variables");
         warn("config.js: MUSIC.DEFAULT_SOURCE must be either YT, YTM or SC");
       }
     }
-
-    // Warnings
-    if (config.OWNER_IDS.length === 0) warn("config.js: OWNER_IDS are empty");
-    // ✅ Doğru ve Güvenli Satır:
-    if (!process.env.WEATHERSTACK_KEY) warn("env: WEATHERSTACK_KEY is missing. Weather command won't work");
-    if (!process.env.STRANGE_API_KEY) warn("env: STRANGE_API_KEY is missing. Image commands won't work");
   }
 
   /**
