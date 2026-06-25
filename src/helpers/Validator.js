@@ -5,7 +5,7 @@ const { log, warn, error } = require("./Logger");
 const Logger = require("./Logger"); 
 const { ApplicationCommandType } = require("discord.js");
 // Dosyanın en üstündeki require satırlarının hemen altına bunu ekle:
-const warn = (message) => Logger.error(message);
+const customWarn = (message) => Logger.error(message);
 module.exports = class Validator {
   static validateConfiguration() {
     // ✅ Doğru kullanım:
