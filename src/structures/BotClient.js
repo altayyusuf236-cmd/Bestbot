@@ -169,7 +169,7 @@ module.exports = class BotClient extends Client {
    * @param {string} directory
    */
   loadCommands(directory) {
-    this.logger.log(`Loading commands...`);
+    console.log(`Loading commands...`);
     const files = recursiveReadDirSync(directory);
     for (const file of files) {
       try {
