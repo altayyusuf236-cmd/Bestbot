@@ -134,7 +134,7 @@ module.exports = class BotClient extends Client {
   loadCommand(cmd) {
     // Check if category is disabled
     if (cmd.category && CommandCategory[cmd.category]?.enabled === false) {
-      this.logger.debug(`Skipping Command ${cmd.name}. Category ${cmd.category} is disabled`);
+      console.log(`Skipping Command ${cmd.name}. Category ${cmd.category} is disabled`);
       return;
     }
     // Prefix Command
@@ -152,7 +152,7 @@ module.exports = class BotClient extends Client {
       this.commandIndex.set(cmd.name.toLowerCase(), index);
       this.commands.push(cmd);
     } else {
-      this.logger.debug(`Skipping command ${cmd.name}. Disabled!`);
+      console.log(`Skipping command ${cmd.name}. Disabled!`);
     }
 
     // Slash Command
@@ -160,7 +160,7 @@ module.exports = class BotClient extends Client {
       if (this.slashCommands.has(cmd.name)) throw new Error(`Slash Command ${cmd.name} already registered`);
       this.slashCommands.set(cmd.name, cmd);
     } else {
-      this.logger.debug(`Skipping slash command ${cmd.name}. Disabled!`);
+      console.log(`Skipping slash command ${cmd.name}. Disabled!`);
     }
   }
 
@@ -193,7 +193,7 @@ module.exports = class BotClient extends Client {
    * @param {string} directory
    */
   loadContexts(directory) {
-    this.logger.log(`Loading contexts...`);
+    console.log(`Loading contexts...`);
     const files = recursiveReadDirSync(directory);
     for (const file of files) {
       try {
@@ -201,7 +201,7 @@ module.exports = class BotClient extends Client {
         const ctx = require(file);
         if (typeof ctx !== "object") continue;
         validateContext(ctx);
-        if (!ctx.enabled) return this.logger.debug(`Skipping context ${ctx.name}. Disabled!`);
+        if (!ctx.enabled) return console.log(`Skipping context ${ctx.name}. Disabled!`);
         if (this.contextMenus.has(ctx.name)) throw new Error(`Context already exists with that name`);
         this.contextMenus.set(ctx.name, ctx);
       } catch (ex) {
@@ -215,8 +215,8 @@ module.exports = class BotClient extends Client {
     if (userContexts > 3) throw new Error("A maximum of 3 USER contexts can be enabled");
     if (messageContexts > 3) throw new Error("A maximum of 3 MESSAGE contexts can be enabled");
 
-    this.logger.success(`Loaded ${userContexts} USER contexts`);
-    this.logger.success(`Loaded ${messageContexts} MESSAGE contexts`);
+    console.log(`Loaded ${userContexts} USER contexts`);
+    console.log(`Loaded ${messageContexts} MESSAGE contexts`);
   }
 
   /**
@@ -257,7 +257,7 @@ module.exports = class BotClient extends Client {
     else if (guildId && typeof guildId === "string") {
       const guild = this.guilds.cache.get(guildId);
       if (!guild) {
-        this.logger.error(`Failed to register interactions in guild ${guildId}`, new Error("No matching guild"));
+        console.log(`Failed to register interactions in guild ${guildId}`, new Error("No matching guild"));
         return;
       }
       await guild.commands.set(toRegister);
@@ -268,7 +268,7 @@ module.exports = class BotClient extends Client {
       throw new Error("Did you provide a valid guildId to register interactions");
     }
 
-    this.logger.success("Successfully registered interactions");
+    console.log("Successfully registered interactions");
   }
 
   /**
