@@ -4,7 +4,8 @@ const config = require("@root/config");
 const { log, warn, error } = require("./Logger");
 const Logger = require("./Logger"); 
 const { ApplicationCommandType } = require("discord.js");
-
+// Dosyanın en üstündeki require satırlarının hemen altına bunu ekle:
+const warn = (message) => Logger.error(message);
 module.exports = class Validator {
   static validateConfiguration() {
     // ✅ Doğru kullanım:
@@ -59,7 +60,8 @@ Logger.info("Validating config file and environment variables");
 
     // Warnings
     if (config.OWNER_IDS.length === 0) warn("config.js: OWNER_IDS are empty");
-    if (!config.SUPPORT_SERVER) warn("config.js: SUPPORT_SERVER is not provided");
+    // ✅ Doğru ve Güvenli Satır:
+    if (!config.SUPPORT_SERVER) warn("config.js: SUPPORT_SERVER missing");
     if (!process.env.WEATHERSTACK_KEY) warn("env: WEATHERSTACK_KEY is missing. Weather command won't work");
     if (!process.env.STRANGE_API_KEY) warn("env: STRANGE_API_KEY is missing. Image commands won't work");
   }
