@@ -1,7 +1,7 @@
 const { WebhookClient } = require("discord.js");
 
 // 1. Webhook URL'sini buraya düz metin olarak da yapıştırabilirsin garanti olsun diye
-const webhookUrl = process.env.LOG_WEBHOOK || process.env.WEBHOOK_URL || "SENIN_WEBHOOK_LINKIN_BURAYA";
+const webhookUrl = process.env.LOG_WEBHOOK || process.env.WEBHOOK_URL || "https://discord.com/api/webhooks/1519750476906627243/QQbZQhGZ3qQ87MIMwYi2cHyKbOp2oet-dIsqm7Tpa4jkKHENn1SMTmkpygIh-aj7vPvn";
 
 let webhookClient = null;
 

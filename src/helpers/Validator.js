@@ -6,7 +6,8 @@ const { ApplicationCommandType } = require("discord.js");
 
 module.exports = class Validator {
   static validateConfiguration() {
-    log("Validating config file and environment variables");
+    // ✅ Doğru kullanım:
+Logger.info("Validating config file and environment variables");
 
     // Bot Token
     if (!process.env.BOT_TOKEN) {
