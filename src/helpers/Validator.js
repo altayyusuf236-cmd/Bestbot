@@ -61,7 +61,6 @@ Logger.info("Validating config file and environment variables");
     // Warnings
     if (config.OWNER_IDS.length === 0) warn("config.js: OWNER_IDS are empty");
     // ✅ Doğru ve Güvenli Satır:
-    if (!config.SUPPORT_SERVER) warn("config.js: SUPPORT_SERVER missing");
     if (!process.env.WEATHERSTACK_KEY) warn("env: WEATHERSTACK_KEY is missing. Weather command won't work");
     if (!process.env.STRANGE_API_KEY) warn("env: STRANGE_API_KEY is missing. Image commands won't work");
   }
