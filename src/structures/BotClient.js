@@ -58,9 +58,7 @@ module.exports = class BotClient extends Client {
     this.counterUpdateQueue = []; // store guildId's that needs counter update
 
     // initialize webhook for sending guild join/leave details
-    this.joinLeaveWebhook = process.env.JOIN_LEAVE_LOGS
-      ? new WebhookClient({ url: process.env.JOIN_LEAVE_LOGS })
-      : undefined;
+    
 
     // Music Player
     if (this.config.MUSIC.ENABLED) this.musicManager = lavaclient(this);
