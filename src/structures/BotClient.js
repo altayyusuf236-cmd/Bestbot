@@ -81,7 +81,7 @@ module.exports = class BotClient extends Client {
    * @param {string} directory directory containing the event files
    */
   loadEvents(directory) {
-    this.logger.log(`Loading events...`);
+    console.log(`Loading events...`);
     let success = 0;
     let failed = 0;
     const clientEvents = [];
@@ -99,7 +99,7 @@ module.exports = class BotClient extends Client {
         success += 1;
       } catch (ex) {
         failed += 1;
-        this.logger.error(`loadEvent - ${file}`, ex);
+        console.log(`loadEvent - ${file}`, ex);
       }
     });
 
@@ -114,7 +114,7 @@ module.exports = class BotClient extends Client {
       })
     );
 
-    this.logger.log(`Loaded ${success + failed} events. Success (${success}) Failed (${failed})`);
+    console.log(`Loaded ${success + failed} events. Success (${success}) Failed (${failed})`);
   }
 
   /**
@@ -179,12 +179,12 @@ module.exports = class BotClient extends Client {
         validateCommand(cmd);
         this.loadCommand(cmd);
       } catch (ex) {
-        this.logger.error(`Failed to load ${file} Reason: ${ex.message}`);
+        console.log(`Failed to load ${file} Reason: ${ex.message}`);
       }
     }
 
-    this.logger.success(`Loaded ${this.commands.length} commands`);
-    this.logger.success(`Loaded ${this.slashCommands.size} slash commands`);
+   console.log(`Loaded ${this.commands.length} commands`);
+   console.log(`Loaded ${this.slashCommands.size} slash commands`);
     if (this.slashCommands.size > 100) throw new Error("A maximum of 100 slash commands can be enabled");
   }
 
@@ -205,7 +205,7 @@ module.exports = class BotClient extends Client {
         if (this.contextMenus.has(ctx.name)) throw new Error(`Context already exists with that name`);
         this.contextMenus.set(ctx.name, ctx);
       } catch (ex) {
-        this.logger.error(`Failed to load ${file} Reason: ${ex.message}`);
+        console.log(`Failed to load ${file} Reason: ${ex.message}`);
       }
     }
 
