@@ -5,16 +5,16 @@ mongoose.set("strictQuery", true);
 
 module.exports = {
   async initializeMongoose() {
-    log(`Connecting to MongoDb...`);
+    console.log(`Connecting to MongoDb...`);
 
     try {
       await mongoose.connect(process.env.MONGO_CONNECTION);
 
-      success("Mongoose: Database connection established");
+      console.log("Mongoose: Database connection established");
 
       return mongoose.connection;
     } catch (err) {
-      error("Mongoose: Failed to connect to database", err);
+      console.log("Mongoose: Failed to connect to database", err);
       process.exit(1);
     }
   },
