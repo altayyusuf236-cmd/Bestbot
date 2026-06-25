@@ -59,9 +59,8 @@ async function listePaneli(context, member, isSlash) {
       .setDescription("Mevcut saat slotları, kayıtlı takımlar ve güncel fikstür durumu aşağıdadır.")
       .setTimestamp();
 
-    // Kodun içindeki o satır şu şekilde güncellenmelidir:
-let toplamTakimSayisi = 0;
-let fiksturHazirMi = turnuva.brackets && turnuva.brackets.length > 0;
+    let toplamTakimSayisi = 0;
+    let fiksturHazirMi = turnuva.brackets && turnuva.brackets.length > 0;
 
     // 1. Slotları Listeleme
     turnuva.slots.forEach(slot => {
@@ -100,6 +99,7 @@ let fiksturHazirMi = turnuva.brackets && turnuva.brackets.length > 0;
 
     const gösterilecekKomponentler = (isAdmin || hasStaffRole) ? [row] : [];
 
+    let sendMessage;
     if (isSlash) {
       sendMessage = await context.editReply({ content: " ", embeds: [listeEmbed], components: gösterilecekKomponentler }).catch(() => null);
     } else {
@@ -119,9 +119,10 @@ let fiksturHazirMi = turnuva.brackets && turnuva.brackets.length > 0;
         let yeniBrackets = [];
 
         for (const slot of güncelTurnuva.slots) {
-          if (slot.teams.length < 2) continue;
+          if (slot.teams.length < 1) continue;
 
           let karisikTakimlar = [...slot.teams];
+          // Fisher-Yates Karıştırma Algoritması
           for (let i = karisikTakimlar.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [karisikTakimlar[i], karisikTakimlar[j]] = [karisikTakimlar[j], karisikTakimlar[i]];
@@ -153,3 +154,25 @@ let fiksturHazirMi = turnuva.brackets && turnuva.brackets.length > 0;
                 status: "FINISHED",
                 text: `✨ **${karisikTakimlar[i].teamName}** [BYE - Tur Atladı]`
               });
+            }
+          }
+        }
+
+        // Yarım kalan veritabanı kaydı ve mesaj güncellemesi tamamlandı
+        güncelTurnuva.brackets = yeniBrackets;
+        await güncelTurnuva.save();
+
+        await interaction.followUp({ content: "✅ Fikstür başarıyla rastgele (barbarca) oluşturuldu! Sayfayı yenilemek için komutu tekrar yazabilirsiniz.", ephemeral: true }).catch(() => {});
+        collector.stop();
+      }
+    });
+
+    collector.on("end", async () => {
+      // Süre bittiğinde butonları devre dışı bırakmak istersen burayı kullanabilirsin
+    });
+
+  } catch (error) {
+    console.error("Turnuva listesi komutunda hata çıktı:", error);
+    await sendError("❌ Liste yüklenirken teknik bir hata meydana geldi.");
+  }
+}
