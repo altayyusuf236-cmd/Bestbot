@@ -22,8 +22,8 @@ validateConfiguration();
 // ⚙️ AYARLAR VE GÜNCELLEME NOTLARI
 // ==========================================
 const OWNER_ID = "1469310778518536265"; 
-const UPDATE_CHANNEL_ID = "1514333526085079192";
-const LOG_CHANNEL_ID = "1503387573358170274";
+const UPDATE_CHANNEL_ID = "1523015271827112095";
+const LOG_CHANNEL_ID = "1523015271827112095";
 const BOT_VERSION = "5.2";
 
 const updateNotes = `**Version ${BOT_VERSION}
@@ -47,45 +47,45 @@ const parser = new RssParser({
 });
 
 
-// AYARLAR
-const YOUTUBE_CHANNEL_ID = "UCh98gyr74gmu2pICnLRkjGg"; // Takip etmek istediğin kanalın UC ile başlayan ID'si
-const DISCORD_CHANNEL_ID = "1503876141528649778"; // Videoların gideceği Discord kanal ID'si (Örnek senin kanalı yazdım)
-const KONTROL_SURESI = 5 * 60 * 1000; // 5 dakikada bir kontrol eder (Milisaniye cinsinden)
+// devre dışı youtube sistemi
+// const YOUTUBE_CHANNEL_ID = "UCh98gyr74gmu2pICnLRkjGg"; // Takip etmek istediğin kanalın UC ile başlayan ID'si
+// const DISCORD_CHANNEL_ID = "1503876141528649778"; // Videoların gideceği Discord kanal ID'si (Örnek senin kanalı yazdım)
+// const KONTROL_SURESI = 5 * 60 * 1000; // 5 dakikada bir kontrol eder (Milisaniye cinsinden)
 
-let sonVideoID = ""; // Bot ilk açıldığında en son videoyu hafızaya alsın diye
+// let sonVideoID = ""; // Bot ilk açıldığında en son videoyu hafızaya alsın diye
 
-async function youtubeKontrolEt() {
-  try {
-    const feed = await parser.parseURL(`https://www.youtube.com/feeds/videos.xml?channel_id=${YOUTUBE_CHANNEL_ID}`);
-    if (!feed.items || feed.items.length === 0) return;
+//async function youtubeKontrolEt() {
+ // try {
+     // const feed = await parser.parseURL(`https://www.youtube.com/feeds/videos.xml?channel_id=${YOUTUBE_CHANNEL_ID}`);
+ //   if (!feed.items || feed.items.length === 0) return;
 
-    const enSonVideo = feed.items[0];
-    const videoID = enSonVideo.id.split(':')[2];
-    const videoLinki = `https://youtu.be/${videoID}`;
+   // const enSonVideo = feed.items[0];
+   // const videoID = enSonVideo.id.split(':')[2];
+   // const videoLinki = `https://youtu.be/${videoID}`;
 
-    let veri = await VideoKontrol.findOne({ kanalId: YOUTUBE_CHANNEL_ID });
+  //  let veri = await VideoKontrol.findOne({ kanalId: YOUTUBE_CHANNEL_ID });
 
-    if (!veri) {
-      veri = await VideoKontrol.create({ kanalId: YOUTUBE_CHANNEL_ID, sonVideoId: videoID });
-      return;
-    }
+ //   if (!veri) {
+  //    veri = await VideoKontrol.create({ kanalId: YOUTUBE_CHANNEL_ID, sonVideoId: videoID });
+    //  return;
+ //   }
 
-    if (videoID !== veri.sonVideoId) {
-      const discordKanali = client.channels.cache.get(DISCORD_CHANNEL_ID) || await client.channels.fetch(DISCORD_CHANNEL_ID).catch(() => null);
+  //  if (videoID !== veri.sonVideoId) {
+   //   const discordKanali = client.channels.cache.get(DISCORD_CHANNEL_ID) || await client.channels.fetch(DISCORD_CHANNEL_ID).catch(() => null);
 
-      if (discordKanali) {
-        discordKanali.send({
-          content: `🚀 **${enSonVideo.author}** yeni bir içerik paylaştı!\n🔗 ${videoLinki}`
-        });
-      }
+    //  if (discordKanali) {
+      //  discordKanali.send({
+      //    content: `🚀 **${enSonVideo.author}** yeni bir içerik paylaştı!\n🔗 ${videoLinki}`
+    //    });
+   //   }
 
-      veri.sonVideoId = videoID;
-      await veri.save();
-    }
-  } catch (error) {
-    console.error("YouTube RSS Kontrol hatası:", error);
-  }
-}
+   //   veri.sonVideoId = videoID;
+    //  await veri.save();
+ //   }
+ // } catch (error) {
+  //  console.error("YouTube RSS Kontrol hatası:", error);
+//  }
+// } /
 
 
 // Bot tamamen hazır olduğunda (ready event'i içinde) sistemi başlatıyoruz
@@ -93,10 +93,10 @@ client.on('ready', () => {
   console.log(`${client.user.tag} aktif, YouTube kontrol sistemi başlatıldı!`);
   
   // Bot açılır açılmaz ilk kontrolü yap
-  youtubeKontrolEt();
+ // youtubeKontrolEt();
   
   // Belirlediğimiz süre boyunca (5 dk) sürekli arkada dönmesini sağla
-  setInterval(youtubeKontrolEt, KONTROL_SURESI);
+  // setInterval(youtubeKontrolEt, KONTROL_SURESI);
 });
 
 // ⏰ TÜRKİYE SAATİ (UTC+3)
