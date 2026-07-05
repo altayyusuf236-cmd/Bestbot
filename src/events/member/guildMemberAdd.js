@@ -86,7 +86,7 @@ module.exports = async (client, member) => {
           const hosgeldinEmbed = new EmbedBuilder()
             .setColor(embedRenk)
             .setTitle(`📥 Sunucumuza Hoş Geldin!`)
-            .setDescription(`Aramıza hoş geldin ${member}! Yetkililerimiz aşağıdaki buton yardımıyla formu doldurarak kaydını yapacaktır.\n\n📖 Kayıt işlemlerine başlamadan önce <#1490088012351013055> kanalına göz atmayı unutma!`)
+            .setDescription(`Aramıza hoş geldin ${member}! Yetkililerimiz aşağıdaki buton yardımıyla formu doldurarak kaydını yapacaktır.\n\n📖 Kayıt işlemlerine başlamadan önce <#1523015271579914427> kanalına göz atmayı unutma!`)
             .setThumbnail(user.displayAvatarURL({ dynamic: true, size: 256 }))
             .addFields(
               { name: "👤 Kullanıcı", value: `${user.tag} (\`${user.id}\`)`, inline: true },

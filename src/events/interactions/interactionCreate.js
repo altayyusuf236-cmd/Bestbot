@@ -134,7 +134,7 @@ module.exports = async (client, interaction) => {
         const uyeId = interaction.customId.split('_')[2];
         const modal = new ModalBuilder().setCustomId(`kayit_formu_${uyeId}`).setTitle('Kullanıcı Kayıt Formu');
         const isimInput = new TextInputBuilder().setCustomId('form_isim').setLabel('Üyenin İsmi').setStyle(TextInputStyle.Short).setRequired(true);
-        const yasInput = new TextInputBuilder().setCustomId('form_yas').setLabel('Üyenin Yaşı').setStyle(TextInputStyle.Short).setRequired(true);
+        const yasInput = new TextInputBuilder().setCustomId('form_yas').setLabel('Üyenin Yaşı').setStyle(TextInputStyle.Short).setRequired(false);
         const cinsiyetInput = new TextInputBuilder().setCustomId('form_cinsiyet').setLabel('Cinsiyeti (Erkek / Kadın)').setStyle(TextInputStyle.Short).setRequired(true);
         modal.addComponents(
             new ActionRowBuilder().addComponents(isimInput), 
