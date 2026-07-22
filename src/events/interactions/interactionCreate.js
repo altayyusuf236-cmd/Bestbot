@@ -305,7 +305,7 @@ module.exports = async (client, interaction) => {
             if (ayar.kayitli) await uye.roles.add(ayar.kayitli).catch(() => null);
             if (ayar.kayitsiz) await uye.roles.remove(ayar.kayitsiz).catch(() => null);
             const formatliIsim = isim.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
-            const yeniIsim = `• ${formatliIsim} | ${yas}`;
+            const yeniIsim = `• ${formatliIsim} ${yas}`;
             await uye.setNickname(yeniIsim).catch(() => null);
             const stat = await KayitStat.findOneAndUpdate(
                 { userId: interaction.user.id },
