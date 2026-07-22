@@ -329,7 +329,7 @@ module.exports = async (client, interaction) => {
             .addFields(
                 { name: "Kayıt Edilen", value: `${uye} (\`${uye.id}\`)`, inline: true },
                 { name: "Kayıt Eden Yetkili", value: `${interaction.user} (\`${interaction.user.id}\`)`, inline: true },
-                { name: "Yeni İsim / Yaş", value: `\`${formatliIsim} | ${yas}\``, inline: true },
+                { name: "Yeni İsim / Yaş", value: `\`${formatliIsim} ${yas}\``, inline: true },
                 { name: "Cinsiyet", value: `\`${cinsiyet}\``, inline: true }
             )
             .setTimestamp();
