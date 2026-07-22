@@ -1,8 +1,8 @@
 const { trackVoiceStats } = require("@handlers/stats");
 const { ChannelType, PermissionFlagsBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
 
-const JOIN_TO_CREATE = "1503152317556592690";
-const CATEGORY_ID = "1502339642136199198";
+const JOIN_TO_CREATE = "1529531431473254449";
+const CATEGORY_ID = "1529531170524758036";
 
 /**
  * @param {import('@src/structures').BotClient} client

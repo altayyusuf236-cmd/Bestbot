@@ -10,7 +10,7 @@ module.exports = {
   category: "MODERATION",
   userPermissions: ["ManageMessages"],
   command: {
-    enabled: false,
+    enabled: true,
   },
   slashCommand: {
     enabled: true,

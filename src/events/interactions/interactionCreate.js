@@ -321,22 +321,33 @@ module.exports = async (client, interaction) => {
             await interaction.editReply({ content: `✅ **${uye.user.username}** başarıyla kaydedildi!` });
 
             if (ayar.log) {
-                const logKanal = interaction.guild.channels.cache.get(ayar.log) || await interaction.guild.channels.fetch(ayar.log).catch(() => null);
-                if (logKanal) {
-                    const logEmbed = new EmbedBuilder()
-                        .setTitle("📥 Yeni Üye Kaydedildi")
-                        .setColor(0x2ecc71)
-                        .addFields(
-                            { name: "Kayıt Edilen", value: `${uye} (\`${uye.id}\`)`, inline: true },
-                            { name: "Kayıt Eden Yetkili", value: `${interaction.user} (\`${interaction.user.id}\`)`, inline: true },
-                            { name: "Yeni İsim / Yaş", value: `\`${formatliIsim} | ${yas}\``, inline: true },
-                            { name: "Cinsiyet", value: `\`${cinsiyet}\``, inline: true }
-                        )
-                        .setTimestamp();
-                    
-                    await logKanal.send({ embeds: [logEmbed] }).catch(() => {});
-                }
-            }
+    const logKanal = interaction.guild.channels.cache.get(ayar.log) || await interaction.guild.channels.fetch(ayar.log).catch(() => null);
+    if (logKanal) {
+        const logEmbed = new EmbedBuilder()
+            .setTitle("📥 Yeni Üye Kaydedildi")
+            .setColor(0x2ecc71)
+            .addFields(
+                { name: "Kayıt Edilen", value: `${uye} (\`${uye.id}\`)`, inline: true },
+                { name: "Kayıt Eden Yetkili", value: `${interaction.user} (\`${interaction.user.id}\`)`, inline: true },
+                { name: "Yeni İsim / Yaş", value: `\`${formatliIsim} | ${yas}\``, inline: true },
+                { name: "Cinsiyet", value: `\`${cinsiyet}\``, inline: true }
+            )
+            .setTimestamp();
+
+        // 🔘 Kayıt İptal Butonu Oluşturuluyor
+        const iptalRow = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                // interactionCreate.js içindeki parts[2], parts[3], parts[4] ile birebir uyumlu customId
+                .setCustomId(`kayit_iptal_${uye.id}_${interaction.user.id}_${cinsiyet}`)
+                .setLabel('Kayıt İptal Et')
+                .setStyle(ButtonStyle.Danger)
+        );
+        
+        // components: [iptalRow] eklenerek buton log kanalına gönderiliyor
+        await logKanal.send({ embeds: [logEmbed], components: [iptalRow] }).catch(() => {});
+    }
+}
+
 
             if (ayar.chatKanal) {
                 const sohbetKanal = interaction.guild.channels.cache.get(ayar.chatKanal) || await interaction.guild.channels.fetch(ayar.chatKanal).catch(() => null);

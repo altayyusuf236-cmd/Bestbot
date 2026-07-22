@@ -108,7 +108,7 @@ module.exports = {
     STATUS: "online", // The bot's status [online, idle, dnd, invisible]
     TYPE: "PLAYING", // Status type for the bot [ CUSTOM | PLAYING | LISTENING | WATCHING | COMPETING ]
     // Your bot status message (note: in custom status type you won't have "Playing", "Listening", "Competing" prefix)
-    MESSAGE: ["discord.gg/jayus"],
+    MESSAGE: ["212 Family"],
   },
 
   STATS: {

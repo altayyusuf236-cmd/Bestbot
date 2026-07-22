@@ -27,8 +27,7 @@ const LOG_CHANNEL_ID = "1523015271827112095";
 const BOT_VERSION = "5.2";
 
 const updateNotes = `**Version ${BOT_VERSION}
-  - Takım sistemi hatalı komutlar fixlendi.
-  - Güncelleme notları için kanal açıldı.**`;
+  - Güncelleme sistemi devre dışı oto mesaj bu.**`;
 
 const client = new BotClient({
   partials: [Partials.Message, Partials.Channel, Partials.GuildMember, Partials.User, Partials.Reaction],
